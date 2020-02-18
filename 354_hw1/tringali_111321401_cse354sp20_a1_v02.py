@@ -92,8 +92,9 @@ def getFeaturesForTokens(tokens, wordToIndex):
 
         currentVector[wordToIndex[tokens[targetI].lower()]] = 1
 
-        if targetI+1 < len(tokens):
+        if targetI+1 < num_words:
             nextVector[wordToIndex[tokens[targetI+1].lower()]] = 1
+
 
         vowels = 0
         constants = 0
@@ -124,28 +125,31 @@ def trainAdjectiveClassifier(features, adjs):
     # inputs: features: feature vectors (i.e. X)
     #        adjs: whether adjective or not: [0, 1] (i.e. y)
     # output: model -- a trained sklearn.linear_model.LogisticRegression object
+   # print(features)
 
-    Cs = [.001, .01, .1, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000]
-    train_x, x_dev, train_y, y_dev = train_test_split(features, adjs, test_size=0.10, random_state=42)
-    goodAcc = 0.0
-    goodModel = None
+    Cs = [.001, .01, .1, 1, 10, 100, 1000, 10000, 100000]
+    # X_train, X_test, y_train, y_test
+    train_x, dev_x, train_y, dev_y = train_test_split(features, adjs, test_size=0.10, random_state=42)
+    bestAccuracy = 0.0
+    bestModel = None
     for c in Cs:  # c values:
         model = LogisticRegression(penalty='l1', solver='liblinear', C=c)
         model.fit(train_x, train_y)
-        y_pred2 = model.predict(x_dev)
+        pred_y = model.predict(dev_x)
 
         # compute accuracy:
-        length = len(y_dev)
+        length = len(dev_y)
 
         # print("test n: ", leny)
-        acc2 = np.sum([1 if (y_pred2[i] == y_dev[i]) else 0 for i in range(length)]) / length
-        # print("Accuracy: %.4f" % acc2)
+        # acc = np.sum([1 if (y_pred[i] == y_test[i]) else 0 for i in range(leny)]) / leny
+        accuracy = np.sum([1 if (pred_y[i] == dev_y[i]) else 0 for i in range(length)]) / length
+        print("Accuracy: %.4f" % accuracy)
 
-        if acc2 > goodAcc:
-            goodModel = model
-            goodAcc = acc2
+        if accuracy > bestAccuracy:
+            bestModel = model
+            bestAccuracy = accuracy
 
-    return goodModel
+    return bestModel
     # <FILL IN>
 
 
@@ -228,7 +232,6 @@ if __name__ == '__main__':
     print("\n", taggedSents[5], "\n", sentXs[5], "\n")
     print(taggedSents[192], "\n", sentXs[192], "\n")
 
-
     # 4. Test Classifier Model Building
     print("\n[ Classifier Test ]\n")
     # setup train/test:
@@ -262,6 +265,6 @@ if __name__ == '__main__':
     print("test n: ", leny)
     acc = np.sum([1 if (y_pred[i] == y_test[i]) else 0 for i in range(leny)]) / leny
     print("Accuracy: %.4f" % acc)
-    # print(classification_report(y_test, y_pred, ['not_adj', 'adjective']))
+#    print(classification_report(y_test, y_pred, ['not_adj', 'adjective']))
 
 
